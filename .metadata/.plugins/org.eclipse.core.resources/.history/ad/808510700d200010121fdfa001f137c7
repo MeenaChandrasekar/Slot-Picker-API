@@ -1,0 +1,56 @@
+package com.optimization.slotpicker.service;
+
+import com.optimization.slotpicker.model.Container;
+import com.optimization.slotpicker.model.YardSlot;
+import com.optimization.slotpicker.model.SlotPickResponse;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class SlotPickerService {
+
+    private static final int INVALID_PENALTY = 10_000;
+
+    public SlotPickResponse pickBestSlot(Container container, List<YardSlot> yardMap) {
+        int minScore = Integer.MAX_VALUE;
+        YardSlot bestSlot = null;
+
+        for (YardSlot slot : yardMap) {
+            int score = calculateScore(container, slot);
+            if (score < minScore) {
+                minScore = score;
+                bestSlot = slot;
+            }
+        }
+
+        if (bestSlot == null || minScore >= INVALID_PENALTY) {
+            return new SlotPickResponse("no suitable slot");
+        }
+
+        return new SlotPickResponse(container.getId(), bestSlot.getX(), bestSlot.getY());
+    }
+
+    private int calculateScore(Container container, YardSlot slot) {
+        int score = 0;
+
+        // Distance (Manhattan)
+        score += Math.abs(container.getX() - slot.getX()) + Math.abs(container.getY() - slot.getY());
+
+        // Size fit
+        boolean fits = slot.getSizeCap().equals("big") || slot.getSizeCap().equals(container.getSize());
+        score += fits ? 0 : INVALID_PENALTY;
+
+        // Cold storage
+        if (container.isNeedsCold() && !slot.isHasColdUnit()) {
+            score += INVALID_PENALTY;
+        }
+
+        // Occupied
+        if (slot.isOccupied()) {
+            score += INVALID_PENALTY;
+        }
+
+        return score;
+    }
+}

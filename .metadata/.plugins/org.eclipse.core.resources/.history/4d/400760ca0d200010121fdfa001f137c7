@@ -1,0 +1,26 @@
+package com.optimization.slotpicker.controller;
+
+import com.optimization.slotpicker.model.Container;
+import com.optimization.slotpicker.model.YardSlot;
+import com.optimization.slotpicker.model.SlotPickRequest;
+import com.optimization.slotpicker.model.SlotPickResponse;
+import com.optimization.slotpicker.service.SlotPickerService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/pickSpot")
+public class SlotPickerController {
+
+    @Autowired
+    private SlotPickerService slotPickerService;
+
+    @PostMapping
+    public SlotPickResponse pickSlot(@RequestBody SlotPickRequest request) {
+        Container container = request.getContainer();
+        List<YardSlot> yardMap = request.getYardMap();
+        return slotPickerService.pickBestSlot(container, yardMap);
+    }
+}
